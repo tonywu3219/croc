@@ -68,10 +68,10 @@ VLOG_ARGS  = -svinputport=compat
 VSIM_ARGS  = -t 1ns -voptargs=+acc
 VSIM_ARGS += -suppress vsim-3009 -suppress vsim-8683 -suppress vsim-8386
 
-vsim/compile_rtl.tcl: Bender.lock Bender.yml
-	$(BENDER) script vsim -t rtl -t vsim -t simulation -t verilator -DSYNTHESIS -DSIMULATION  --vlog-arg="$(VLOG_ARGS)" > $@
+vsim/compile_rtl.tcl: 
+	$(BENDER) script vsim -t rtl/gpio -t vsim -t simulation -t verilator -DSYNTHESIS -DSIMULATION  --vlog-arg="$(VLOG_ARGS)" > $@
 
-vsim/compile_netlist.tcl: Bender.lock Bender.yml
+vsim/compile_netlist.tcl: 
 	$(BENDER) script vsim -t ihp13 -t vsim -t simulation -t verilator -t netlist_yosys -DSYNTHESIS -DSIMULATION > $@
 
 ## Simulate RTL using Questasim/Modelsim/vsim
@@ -93,8 +93,8 @@ VERILATOR_ARGS += -Wno-style -Wno-WIDTHEXPAND
 VERILATOR_ARGS += --timing --autoflush --trace --trace-structs
 VERILATOR_ARGS +=  --unroll-count 1 --unroll-stmts 1
 
-verilator/croc.f: Bender.lock Bender.yml
-	$(BENDER) script verilator -t rtl -t verilator -DSYNTHESIS -DVERILATOR > $@
+verilator/croc.f: 
+	$(BENDER) script verilator -t rtl/gpio -t verilator -DSYNTHESIS -DVERILATOR > $@
 
 verilator/obj_dir/Vtb_croc_soc: verilator/croc.f $(SW_HEX)
 	cd verilator; $(VERILATOR) $(VERILATOR_ARGS) -O3 -CFLAGS "-O1 -march=native" --top tb_croc_soc -f croc.f
@@ -110,23 +110,23 @@ verilator: verilator/obj_dir/Vtb_croc_soc
 # Open Source Flow #
 ####################
 # Bender manages the different IPs and can be used to generate file-lists for synthesis
-TOP_DESIGN     ?= croc_chip
-DUT_DESIGN	   ?= croc_soc
+TOP_DESIGN     ?= cve2_register_file_ff
+DUT_DESIGN	   ?= cve2_register_file_ff
 BENDER_TARGETS ?= asic ihp13 rtl synthesis
 SV_DEFINES     ?= VERILATOR SYNTHESIS COMMON_CELLS_ASSERTS_OFF
 
 ## Generate croc.flist used to read design in yosys
-yosys-flist: Bender.lock Bender.yml rtl/*/Bender.yml
-	$(BENDER) script flist-plus $(foreach t,$(BENDER_TARGETS),-t $(t)) $(foreach d,$(SV_DEFINES),-D $(d)=1) > $(PROJ_DIR)/croc.flist
+yosys-flist: 
+##$(BENDER) script flist-plus $(foreach t,$(BENDER_TARGETS),-t $(t)) $(foreach d,$(SV_DEFINES),-D $(d)=1) > $(PROJ_DIR)/croc.flist
+	cd rtl/cve2 && $(BENDER) script flist -t rtl $(foreach d,$(SV_DEFINES),-D $(d)=1) > ../../croc.flist
+include yosys_rf/yosys.mk
+include openroad_rf/openroad.mk
 
-include yosys/yosys.mk
-include openroad/openroad.mk
-
-klayout/croc_chip.gds: $(OR_OUT)/croc.def klayout/*.sh klayout/*.py
+klayout/rf.gds: $(OR_OUT)/cve2_register_file_ff.def klayout/*.sh klayout/*.py
 	./klayout/def2gds.sh
 
 ## Generate merged .gds from openroads .def output
-klayout: klayout/croc_chip.gds
+klayout: klayout/cve2_register_file_ff.gds
 
 .PHONY: klayout yosys-flist
 

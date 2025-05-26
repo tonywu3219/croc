@@ -83,17 +83,19 @@ set floor_topY        [expr $core_topY - $floorPaddingY]
 set floor_midpointX   [expr $floor_leftX + ($floor_rightX - $floor_leftX)/2]
 set floor_midpointY   [expr $floor_bottomY + ($floor_topY - $floor_bottomY)/2]
 
-utl::report "Place Macros"
+utl::report "Place Macros using MPL"
+
+rtl_macro_placer -halo_width 5 -halo_height 5 -target_util 0.7 -min_ar 0.3 -report_directory "./reports/mpl" 
 
 # Bank0
-set X [expr $floor_midpointX - $RamSize256x64_W/2]
-set Y [expr $floor_topY - $RamSize256x64_H]
-placeInstance $bank0_sram0 $X $Y R0
+#set X [expr $floor_midpointX - $RamSize256x64_W/2]
+#set Y [expr $floor_topY - $RamSize256x64_H]
+#placeInstance $bank0_sram0 $X $Y R0
 
 # Bank1
-set X [expr $X]
-set Y [expr $Y - $RamSize256x64_H - 15]
-placeInstance $bank1_sram0 $X $Y R0
+#set X [expr $X]
+#set Y [expr $Y - $RamSize256x64_H - 15]
+#placeInstance $bank1_sram0 $X $Y R0
 
 
 cut_rows -halo_width_x 2 -halo_width_y 1

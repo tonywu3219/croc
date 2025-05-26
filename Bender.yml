@@ -22,6 +22,11 @@ dependencies:
 
 
 sources:
+
+  - target: core_wrap
+    files:
+      - rtl/core_wrap.sv
+
   # Level 0
   - target: ihp13
     files:
